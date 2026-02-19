@@ -47,7 +47,11 @@
         <el-table :data="portfolios" style="width: 100%" stripe v-loading="loadingPortfolios">
           <el-table-column prop="thumbnailUrl" label="封面" width="120">
             <template #default="scope">
-              <img v-if="scope.row.thumbnailUrl" :src="scope.row.thumbnailUrl" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px" />
+              <img
+                v-if="scope.row.thumbnailUrl"
+                :src="resolveImageUrl(scope.row.thumbnailUrl)"
+                style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px"
+              />
               <span v-else>无封面</span>
             </template>
           </el-table-column>
@@ -129,7 +133,7 @@
             <template #default="scope">
               <img
                 v-if="scope.row.thumbnailUrl"
-                :src="scope.row.thumbnailUrl"
+                :src="resolveImageUrl(scope.row.thumbnailUrl)"
                 style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px"
               />
               <span v-else>无封面</span>
@@ -556,6 +560,17 @@ const adminCropInitialDistance = ref(0);
 const adminCropInitialZoom = ref(1);
 
 const ADMIN_CROP_SIZE = 300;
+
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  const uploadsIndex = url.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    const path = url.substring(uploadsIndex);
+    const isNetlify = window.location.hostname.endsWith('netlify.app');
+    return isNetlify ? `/.netlify/functions/proxy${path}` : `http://112.124.10.28${path}`;
+  }
+  return url;
+};
 
 // --- Users Management ---
 const fetchUsers = async () => {

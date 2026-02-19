@@ -15,7 +15,7 @@
           <template #default="scope">
             <img
               v-if="scope.row.thumbnailUrl"
-              :src="scope.row.thumbnailUrl"
+              :src="resolveImageUrl(scope.row.thumbnailUrl)"
               class="thumb"
             />
             <span v-else>无封面</span>
@@ -100,6 +100,17 @@ const viewDetail = (id: string) => {
   router.push(`/portfolio/${id}`);
 };
 
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  const uploadsIndex = url.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    const path = url.substring(uploadsIndex);
+    const isNetlify = window.location.hostname.endsWith('netlify.app');
+    return isNetlify ? `/.netlify/functions/proxy${path}` : `http://112.124.10.28${path}`;
+  }
+  return url;
+};
+
 onMounted(() => {
   fetchPortfolios();
 });
@@ -150,4 +161,3 @@ onMounted(() => {
   margin-top: 20px;
 }
 </style>
-

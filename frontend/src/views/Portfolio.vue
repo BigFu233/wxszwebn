@@ -15,7 +15,7 @@
                   <video
                     v-if="item.thumbnailUrl || item.url"
                     class="video"
-                    :src="item.thumbnailUrl || item.url"
+                    :src="resolveImageUrl(item.thumbnailUrl || item.url)"
                     muted
                     playsinline
                     preload="metadata"
@@ -27,7 +27,7 @@
                 </template>
                 <template v-else>
                   <img
-                    :src="item.thumbnailUrl || 'https://via.placeholder.com/300'"
+                    :src="resolveImageUrl(item.thumbnailUrl || 'https://via.placeholder.com/300')"
                     class="image"
                     loading="lazy"
                   />
@@ -94,6 +94,17 @@ const handleCardClick = (item: any) => {
     return;
   }
   router.push(`/portfolio/${item._id}`);
+};
+
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  const uploadsIndex = url.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    const path = url.substring(uploadsIndex);
+    const isNetlify = window.location.hostname.endsWith('netlify.app');
+    return isNetlify ? `/.netlify/functions/proxy${path}` : `http://112.124.10.28${path}`;
+  }
+  return url;
 };
 
 onMounted(() => {

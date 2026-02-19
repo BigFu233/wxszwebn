@@ -7,12 +7,12 @@
     <div class="content-wrapper" v-if="portfolio">
       <div class="media-section">
         <img
-          :src="portfolio.url"
+          :src="resolveImageUrl(portfolio.url)"
           class="main-image"
           v-if="portfolio.type === 'photo' || portfolio.type === 'post_prod'"
         />
         <video controls class="main-video" v-else-if="portfolio.type === 'video'">
-          <source :src="portfolio.url" type="video/mp4">
+          <source :src="resolveImageUrl(portfolio.url)" type="video/mp4">
           您的浏览器不支持 Video 标签。
         </video>
       </div>
@@ -131,6 +131,17 @@ const submitComment = () => {
 const formatDate = (value: string | Date) => {
   if (!value) return '';
   return new Date(value).toLocaleDateString();
+};
+
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  const uploadsIndex = url.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    const path = url.substring(uploadsIndex);
+    const isNetlify = window.location.hostname.endsWith('netlify.app');
+    return isNetlify ? `/.netlify/functions/proxy${path}` : `http://112.124.10.28${path}`;
+  }
+  return url;
 };
 
 const fetchPortfolio = async () => {

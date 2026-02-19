@@ -1,4 +1,5 @@
-const BACKEND_BASE = "http://112.124.10.28/api";
+const API_BASE = "http://112.124.10.28/api";
+const RAW_BASE = "http://112.124.10.28";
 
 exports.handler = async (event) => {
   const basePath = "/.netlify/functions/proxy";
@@ -7,7 +8,9 @@ exports.handler = async (event) => {
     : event.path;
 
   const query = event.rawQuery ? `?${event.rawQuery}` : "";
-  const url = `${BACKEND_BASE}${path}${query}`;
+
+  const targetBase = path.startsWith("/uploads") ? RAW_BASE : API_BASE;
+  const url = `${targetBase}${path}${query}`;
 
   const method = event.httpMethod || "GET";
 
