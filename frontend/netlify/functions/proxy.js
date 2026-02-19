@@ -21,10 +21,12 @@ export default async (request, context) => {
   headers.delete("Content-Length");
 
   const method = request.method || "GET";
+  const hasBody = !(method === "GET" || method === "HEAD");
   const init = {
     method,
     headers,
-    body: method === "GET" || method === "HEAD" ? undefined : request.body,
+    body: hasBody ? request.body : undefined,
+    ...(hasBody ? { duplex: "half" } : {}),
   };
 
   const response = await fetch(targetUrl, init);
