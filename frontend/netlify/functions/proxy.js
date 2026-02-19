@@ -13,9 +13,17 @@ exports.handler = async (event) => {
 
   const headers = { ...event.headers };
   delete headers.host;
+  delete headers["content-length"];
+  delete headers["Content-Length"];
 
-  const body =
-    method === "GET" || method === "HEAD" ? undefined : event.body || undefined;
+  let body;
+  if (method === "GET" || method === "HEAD") {
+    body = undefined;
+  } else if (event.isBase64Encoded) {
+    body = Buffer.from(event.body || "", "base64");
+  } else {
+    body = event.body || undefined;
+  }
 
   const response = await fetch(url, {
     method,
