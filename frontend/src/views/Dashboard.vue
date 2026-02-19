@@ -699,6 +699,7 @@ const onCropConfirm = async () => {
 .bg-blue { background: linear-gradient(135deg, #409EFF, #0056b3); }
 .bg-green { background: linear-gradient(135deg, #67C23A, #4e9628); }
 .bg-orange { background: linear-gradient(135deg, #E6A23C, #b87b22); }
+.bg-pink { background: linear-gradient(135deg, #FF79C6, #FF4B8B); }
 .bg-purple { background: linear-gradient(135deg, #909399, #606266); }
 
 .mt-20 {

@@ -16,7 +16,11 @@
       <div v-for="item in favorites" :key="item._id" class="item animate__animated animate__zoomIn">
         <el-card :body-style="{ padding: '0px' }" class="portfolio-card" @click="handleCardClick(item)">
           <div class="image-wrapper">
-            <img :src="item.thumbnailUrl || 'https://via.placeholder.com/300'" class="image" loading="lazy" />
+            <img
+              :src="item.thumbnailUrl ? resolveImageUrl(item.thumbnailUrl) : 'https://via.placeholder.com/300'"
+              class="image"
+              loading="lazy"
+            />
             <div class="overlay">
               <el-button type="primary" circle :icon="ZoomIn" />
             </div>
@@ -27,8 +31,10 @@
               <div class="author">
                 <el-avatar
                   :size="24"
-                  :src="item.user?.avatarUrl || `https://i.pravatar.cc/150?u=${item.user?.username}`"
-                />
+                  :src="item.user?.avatarUrl ? resolveImageUrl(item.user.avatarUrl) : ''"
+                >
+                  {{ item.user?.username?.[0] || '作' }}
+                </el-avatar>
                 <span class="username">{{ item.user?.username || '未知作者' }}</span>
               </div>
               <time class="time">{{ new Date(item.createdAt).toLocaleDateString() }}</time>
@@ -48,6 +54,17 @@ import request from '../utils/request';
 
 const favorites = ref<any[]>([]);
 const loading = ref(false);
+
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  const uploadsIndex = url.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    const path = url.substring(uploadsIndex);
+    const isNetlify = window.location.hostname.endsWith('netlify.app');
+    return isNetlify ? `/.netlify/functions/proxy${path}` : `http://112.124.10.28${path}`;
+  }
+  return url;
+};
 
 const fetchFavorites = async () => {
   loading.value = true;

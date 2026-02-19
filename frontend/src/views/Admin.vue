@@ -423,8 +423,10 @@
         <div style="text-align: center; margin-bottom: 20px">
           <el-avatar
             :size="100"
-            :src="avatarUser.avatarUrl || `https://i.pravatar.cc/150?u=${avatarUser.username}`"
-          />
+            :src="avatarUser.avatarUrl ? resolveImageUrl(avatarUser.avatarUrl) : ''"
+          >
+            {{ avatarUser.username?.[0] || '用' }}
+          </el-avatar>
           <div style="margin-top: 10px">{{ avatarUser.username }}</div>
         </div>
         <input

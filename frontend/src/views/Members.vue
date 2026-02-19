@@ -14,9 +14,11 @@
         <div v-for="member in members" :key="member._id" class="member-card animate__animated animate__fadeInUp">
           <el-avatar
             :size="120"
-            :src="member.avatarUrl || `https://i.pravatar.cc/150?u=${member.username}`"
+            :src="member.avatarUrl ? resolveImageUrl(member.avatarUrl) : ''"
             class="member-avatar"
-          />
+          >
+            {{ member.username?.[0] || '成' }}
+          </el-avatar>
           <h3 class="member-name">{{ member.username }}</h3>
           <el-tag :type="getRoleType(member.role)" class="member-role">{{ formatRole(member.role) }}</el-tag>
           <div class="member-info">
@@ -37,12 +39,22 @@ import request from '../utils/request';
 const members = ref<any[]>([]);
 const loading = ref(true);
 
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  const uploadsIndex = url.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    const path = url.substring(uploadsIndex);
+    const isNetlify = window.location.hostname.endsWith('netlify.app');
+    return isNetlify ? `/.netlify/functions/proxy${path}` : `http://112.124.10.28${path}`;
+  }
+  return url;
+};
+
 const fetchMembers = async () => {
   loading.value = true;
   try {
     const res: any = await request.get('/users');
     if (Array.isArray(res)) {
-      // Filter out guests if needed, or show all
       members.value = res.filter((u: any) => u.role !== 'guest');
     }
   } catch (error) {
