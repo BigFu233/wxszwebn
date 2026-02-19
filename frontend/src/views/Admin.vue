@@ -15,8 +15,10 @@
             <template #default="scope">
               <el-avatar
                 :size="40"
-                :src="scope.row.avatarUrl || `https://i.pravatar.cc/80?u=${scope.row.username}`"
-              />
+                :src="resolveImageUrl(scope.row.avatarUrl || '')"
+              >
+                {{ scope.row.username?.[0] || '用' }}
+              </el-avatar>
             </template>
           </el-table-column>
           <el-table-column prop="username" label="用户名" />

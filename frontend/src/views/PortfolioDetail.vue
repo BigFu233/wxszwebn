@@ -23,8 +23,10 @@
         <div class="author-info">
           <el-avatar
             :size="40"
-            :src="portfolio.user?.avatarUrl || `https://i.pravatar.cc/150?u=${portfolio.user?.username}`"
-          />
+            :src="portfolio.user?.avatarUrl ? resolveImageUrl(portfolio.user.avatarUrl) : ''"
+          >
+            {{ portfolio.user?.username?.[0] || '作' }}
+          </el-avatar>
           <div class="author-meta">
             <span class="username">{{ portfolio.user?.username || '未知作者' }}</span>
             <span class="date">{{ formatDate(portfolio.createdAt) }}</span>
@@ -59,7 +61,9 @@
           
           <div class="comment-list">
             <div v-for="comment in comments" :key="comment.id" class="comment-item">
-              <el-avatar :size="32" :src="comment.user.avatar" />
+              <el-avatar :size="32">
+                {{ comment.user.username?.[0] || '访' }}
+              </el-avatar>
               <div class="comment-content">
                 <div class="comment-header">
                   <span class="comment-user">{{ comment.user.username }}</span>
@@ -93,13 +97,13 @@ const newComment = ref('');
 const comments = ref([
   {
     id: 1,
-    user: { username: '用户A', avatar: 'https://i.pravatar.cc/150?u=a' },
+    user: { username: '用户A' },
     content: '太美了！光影控制得非常好。',
     date: '2小时前'
   },
   {
     id: 2,
-    user: { username: '用户B', avatar: 'https://i.pravatar.cc/150?u=b' },
+    user: { username: '用户B' },
     content: '请问这是在哪里拍的？',
     date: '5小时前'
   }
@@ -119,7 +123,7 @@ const submitComment = () => {
   
   comments.value.unshift({
     id: Date.now(),
-    user: { username: '我', avatar: 'https://i.pravatar.cc/150?u=me' },
+    user: { username: '我' },
     content: newComment.value,
     date: '刚刚'
   });

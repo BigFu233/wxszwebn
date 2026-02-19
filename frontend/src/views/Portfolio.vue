@@ -42,8 +42,10 @@
                   <div class="author">
                     <el-avatar
                       :size="24"
-                      :src="item.user?.avatarUrl || `https://i.pravatar.cc/150?u=${item.user?.username}`"
-                    />
+                      :src="item.user?.avatarUrl ? resolveImageUrl(item.user.avatarUrl) : ''"
+                    >
+                      {{ item.user?.username?.[0] || '作' }}
+                    </el-avatar>
                     <span class="username">{{ item.user?.username || '未知作者' }}</span>
                   </div>
                   <time class="time">{{ new Date(item.createdAt).toLocaleDateString() }}</time>

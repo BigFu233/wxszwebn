@@ -136,7 +136,13 @@
             @click="showMemberProfile(member)"
             style="cursor: pointer"
           >
-            <el-avatar :size="100" :src="`https://i.pravatar.cc/150?u=${member.username}`" class="member-avatar" />
+            <el-avatar
+              :size="100"
+              :src="member.avatarUrl ? resolveImageUrl(member.avatarUrl) : ''"
+              class="member-avatar"
+            >
+              {{ member.username?.[0] || '成' }}
+            </el-avatar>
             <h3 class="member-name">{{ member.username }}</h3>
             <p class="member-role">{{ formatRole(member.role) }}</p>
           </div>
@@ -204,7 +210,13 @@
       align-center
     >
       <div class="profile-content" v-if="currentMember">
-        <el-avatar :size="120" :src="`https://i.pravatar.cc/150?u=${currentMember.username}`" class="profile-avatar-large" />
+        <el-avatar
+          :size="120"
+          :src="currentMember.avatarUrl ? resolveImageUrl(currentMember.avatarUrl) : ''"
+          class="profile-avatar-large"
+        >
+          {{ currentMember.username?.[0] || '成' }}
+        </el-avatar>
         <h2 class="profile-name">{{ currentMember.username }}</h2>
         <el-tag class="profile-role" size="large">{{ formatRole(currentMember.role) }}</el-tag>
         <div class="profile-details">
@@ -255,6 +267,17 @@ const handleCarouselClick = (item: CarouselItem) => {
   } else {
     router.push('/portfolio');
   }
+};
+
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  const uploadsIndex = url.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    const path = url.substring(uploadsIndex);
+    const isNetlify = window.location.hostname.endsWith('netlify.app');
+    return isNetlify ? `/.netlify/functions/proxy${path}` : `http://112.124.10.28${path}`;
+  }
+  return url;
 };
 
 // Fetch Data

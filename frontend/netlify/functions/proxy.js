@@ -1,5 +1,6 @@
 const API_BASE = "http://112.124.10.28/api";
 const RAW_BASE = "http://112.124.10.28";
+const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 exports.handler = async (event) => {
   const basePath = "/.netlify/functions/proxy";

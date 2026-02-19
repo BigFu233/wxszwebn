@@ -149,12 +149,22 @@ import request from '../utils/request';
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  const uploadsIndex = url.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    const path = url.substring(uploadsIndex);
+    const isNetlify = window.location.hostname.endsWith('netlify.app');
+    return isNetlify ? `/.netlify/functions/proxy${path}` : `http://112.124.10.28${path}`;
+  }
+  return url;
+};
+
 const avatarSrc = computed(() => {
   if (user.value?.avatarUrl) {
-    return user.value.avatarUrl;
+    return resolveImageUrl(user.value.avatarUrl);
   }
-  const name = user.value?.username || 'user';
-  return `https://i.pravatar.cc/150?u=${encodeURIComponent(name)}`;
+  return '';
 });
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
