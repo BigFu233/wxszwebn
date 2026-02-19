@@ -1,65 +1,32 @@
 const API_BASE = "http://112.124.10.28/api";
 const RAW_BASE = "http://112.124.10.28";
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
-exports.handler = async (event) => {
+export default async (request, context) => {
+  const url = new URL(request.url);
+
   const basePath = "/.netlify/functions/proxy";
-  const path = event.path.startsWith(basePath)
-    ? event.path.slice(basePath.length)
-    : event.path;
+  const path = url.pathname.startsWith(basePath)
+    ? url.pathname.slice(basePath.length)
+    : url.pathname;
 
-  const query = event.rawQuery ? `?${event.rawQuery}` : "";
+  const query = url.search || "";
 
   const targetBase = path.startsWith("/uploads") ? RAW_BASE : API_BASE;
-  const url = `${targetBase}${path}${query}`;
+  const targetUrl = `${targetBase}${path}${query}`;
 
-  const method = event.httpMethod || "GET";
+  const headers = new Headers(request.headers);
+  headers.delete("host");
+  headers.delete("Host");
+  headers.delete("content-length");
+  headers.delete("Content-Length");
 
-  const headers = { ...event.headers };
-  delete headers.host;
-  delete headers["content-length"];
-  delete headers["Content-Length"];
-
-  let body;
-  if (method === "GET" || method === "HEAD") {
-    body = undefined;
-  } else if (event.isBase64Encoded) {
-    body = Buffer.from(event.body || "", "base64");
-  } else {
-    body = event.body || undefined;
-  }
-
-  const response = await fetch(url, {
+  const method = request.method || "GET";
+  const init = {
     method,
     headers,
-    body,
-  });
-  
-  const contentType = response.headers.get("content-type") || "";
-  const isBinary =
-    contentType.startsWith("image/") ||
-    contentType.startsWith("video/") ||
-    contentType === "application/octet-stream";
+    body: method === "GET" || method === "HEAD" ? undefined : request.body,
+  };
 
-  if (isBinary) {
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    return {
-      statusCode: response.status,
-      headers: {
-        "Content-Type": contentType,
-      },
-      body: buffer.toString("base64"),
-      isBase64Encoded: true,
-    };
-  } else {
-    const text = await response.text();
-    return {
-      statusCode: response.status,
-      headers: {
-        "Content-Type": contentType || "application/json",
-      },
-      body: text,
-    };
-  }
+  const response = await fetch(targetUrl, init);
+  return response;
 };
