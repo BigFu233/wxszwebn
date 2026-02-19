@@ -4,7 +4,7 @@ import { AuthRequest } from '../types';
 
 export const createPortfolio = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, url, type } = req.body;
+    const { title, description, url, type, taskId } = req.body;
     const userId = req.user?._id;
 
     const protocol = req.protocol;
@@ -36,7 +36,8 @@ export const createPortfolio = async (req: AuthRequest, res: Response) => {
       url: finalUrl,
       thumbnailUrl,
       type,
-      status
+      status,
+      task: taskId || null
     });
 
     res.status(201).json(portfolio);
@@ -50,6 +51,7 @@ export const getPortfolios = async (req: Request, res: Response) => {
   try {
     const portfolios = await Portfolio.find({ status: 'approved' })
       .populate('user', 'username email avatarUrl')
+      .populate('task', 'title type')
       .sort({ createdAt: -1 });
     res.json(portfolios);
   } catch (error) {
@@ -62,6 +64,7 @@ export const getPortfoliosAdmin = async (req: AuthRequest, res: Response) => {
   try {
     const portfolios = await Portfolio.find()
       .populate('user', 'username email avatarUrl')
+      .populate('task', 'title type')
       .sort({ createdAt: -1 });
     res.json(portfolios);
   } catch (error) {
@@ -73,7 +76,9 @@ export const getPortfoliosAdmin = async (req: AuthRequest, res: Response) => {
 export const getPortfolioById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const portfolio = await Portfolio.findById(id).populate('user', 'username email avatarUrl');
+    const portfolio = await Portfolio.findById(id)
+      .populate('user', 'username email avatarUrl')
+      .populate('task', 'title type');
     if (!portfolio || portfolio.status !== 'approved') {
       res.status(404).json({ message: '作品不存在或未发布' });
       return;

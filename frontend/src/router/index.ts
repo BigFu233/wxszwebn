@@ -12,6 +12,7 @@ import About from '../views/About.vue'
 import Favorites from '../views/Favorites.vue'
 import Settings from '../views/Settings.vue'
 import MyPortfolios from '../views/MyPortfolios.vue'
+import MyTasks from '../views/MyTasks.vue'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
@@ -58,6 +59,12 @@ const router = createRouter({
       name: 'favorites',
       component: Favorites,
       meta: { requiresAuth: true, title: '我的收藏' }
+    },
+    {
+      path: '/tasks',
+      name: 'tasks',
+      component: MyTasks,
+      meta: { requiresAuth: true, title: '我的任务' }
     },
     {
       path: '/my-portfolios',

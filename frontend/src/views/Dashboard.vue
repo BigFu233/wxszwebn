@@ -56,7 +56,7 @@
               </div>
               <span>上传作品</span>
             </div>
-            <div class="action-item">
+            <div class="action-item" @click="onMyTasksClick">
               <div class="action-icon bg-green">
                 <el-icon><List /></el-icon>
               </div>
@@ -211,6 +211,10 @@ const cropImageStyle = computed(() => {
     transform: `translate(${cropX.value}px, ${cropY.value}px)`
   };
 });
+
+const onMyTasksClick = () => {
+  window.location.href = '/tasks';
+};
 
 const onMyPortfoliosClick = () => {
   window.location.href = '/my-portfolios';

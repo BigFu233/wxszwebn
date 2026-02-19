@@ -23,6 +23,21 @@
         <el-form-item label="作品链接 (URL，可选)">
           <el-input v-model="form.url" placeholder="作品的外部链接 (如视频链接或高清图链接)" />
         </el-form-item>
+        <el-form-item label="关联任务（可选）">
+          <el-select
+            v-model="form.taskId"
+            placeholder="选择此次作品所属的任务（如有）"
+            style="width: 100%"
+            clearable
+          >
+            <el-option
+              v-for="task in availableTasks"
+              :key="task._id"
+              :label="taskLabel(task)"
+              :value="task._id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="作品文件上传（可选，本地上传）">
           <el-upload
             class="upload-demo"
@@ -80,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref, computed, onMounted } from 'vue';
 import { UploadFilled } from '@element-plus/icons-vue';
 import { ElMessage, type UploadInstance, type UploadProps } from 'element-plus';
 import { useRouter } from 'vue-router';
@@ -97,8 +112,36 @@ const form = reactive({
   title: '',
   description: '',
   type: '',
-  url: ''
+  url: '',
+  taskId: ''
 });
+
+const myTasks = ref<any[]>([]);
+
+const fetchMyTasks = async () => {
+  try {
+    const res = await request.get('/tasks/mine');
+    myTasks.value = Array.isArray(res) ? res : [];
+  } catch {
+    // ignore
+  }
+};
+
+const availableTasks = computed(() => {
+  if (!form.type) return myTasks.value;
+  return myTasks.value.filter((t) => !t.type || t.type === form.type || t.type === 'general');
+});
+
+const taskLabel = (task: any) => {
+  const typeMap: Record<string, string> = {
+    photo: '摄影',
+    video: '视频',
+    post_prod: '后期',
+    general: '通用'
+  };
+  const typeText = typeMap[task.type] || '通用';
+  return `${task.title}（${typeText}）`;
+};
 
 const handleThumbExceed: UploadProps['onExceed'] = (files) => {
   if (!uploadRef.value) return;
@@ -198,6 +241,9 @@ const onSubmit = async () => {
     formData.append('description', form.description);
     formData.append('type', form.type);
     formData.append('url', form.url);
+    if (form.taskId) {
+      formData.append('taskId', form.taskId);
+    }
 
     if (selectedMainFile.value) {
       formData.append('file', selectedMainFile.value);
@@ -223,6 +269,10 @@ const onSubmit = async () => {
     loading.value = false;
   }
 };
+
+onMounted(() => {
+  fetchMyTasks();
+});
 </script>
 
 <style scoped>

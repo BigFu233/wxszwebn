@@ -106,15 +106,36 @@
         </div>
         <el-table :data="tasks" style="width: 100%" stripe v-loading="loadingTasks">
           <el-table-column prop="title" label="任务标题" />
+          <el-table-column prop="type" label="类型" width="120">
+            <template #default="scope">
+              <el-tag>{{ formatTaskType(scope.row.type) }}</el-tag>
+            </template>
+          </el-table-column>
           <el-table-column prop="description" label="描述" show-overflow-tooltip />
-          <el-table-column prop="deadline" label="截止日期">
+          <el-table-column prop="deadline" label="截止日期" width="140">
             <template #default="scope">
               {{ formatDate(scope.row.deadline) }}
             </template>
           </el-table-column>
-          <el-table-column prop="createdBy.username" label="发布人" />
-          <el-table-column label="操作" width="120">
+          <el-table-column prop="createdBy.username" label="发布人" width="140" />
+          <el-table-column label="指派对象" min-width="180">
             <template #default="scope">
+              <div v-if="scope.row.assignees && scope.row.assignees.length">
+                <el-tag
+                  v-for="a in scope.row.assignees"
+                  :key="a.user?._id || a.user"
+                  size="small"
+                  style="margin-right: 4px; margin-bottom: 4px"
+                >
+                  {{ a.user?.username || findUsername(a.user) }}
+                </el-tag>
+              </div>
+              <span v-else>未指定</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="180">
+            <template #default="scope">
+              <el-button size="small" @click="openAssignDialog(scope.row)">指派</el-button>
               <el-button size="small" type="danger" plain @click="handleDeleteTask(scope.row._id)">删除</el-button>
             </template>
           </el-table-column>
@@ -125,8 +146,10 @@
         <div class="table-actions">
           <el-button type="primary" size="small" @click="fetchPortfolios">刷新列表</el-button>
         </div>
+
+        <h3 style="margin: 10px 0;">普通作品审核</h3>
         <el-table
-          :data="portfolios.filter(p => p.status !== 'approved')"
+          :data="pendingNormalPortfolios"
           style="width: 100%"
           stripe
           v-loading="loadingPortfolios"
@@ -147,6 +170,66 @@
               <el-tag>{{ formatType(scope.row.type) }}</el-tag>
             </template>
           </el-table-column>
+          <el-table-column prop="user.username" label="作者" />
+          <el-table-column prop="createdAt" label="上传时间" width="160">
+            <template #default="scope">
+              {{ formatDate(scope.row.createdAt) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="220">
+            <template #default="scope">
+              <el-button
+                size="small"
+                type="primary"
+                plain
+                @click="$router.push(`/portfolio/${scope.row._id}`)"
+              >
+                查看详情
+              </el-button>
+              <el-button
+                size="small"
+                type="success"
+                plain
+                @click="handleApprovePortfolio(scope.row._id)"
+              >
+                通过
+              </el-button>
+              <el-button
+                size="small"
+                type="danger"
+                plain
+                @click="handleDeletePortfolio(scope.row._id)"
+              >
+                删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <h3 style="margin: 20px 0 10px;">任务作品审核</h3>
+        <el-table
+          :data="pendingTaskPortfolios"
+          style="width: 100%"
+          stripe
+          v-loading="loadingPortfolios"
+        >
+          <el-table-column prop="thumbnailUrl" label="封面" width="120">
+            <template #default="scope">
+              <img
+                v-if="scope.row.thumbnailUrl"
+                :src="resolveImageUrl(scope.row.thumbnailUrl)"
+                style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px"
+              />
+              <span v-else>无封面</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="标题" />
+          <el-table-column prop="type" label="类型" width="120">
+            <template #default="scope">
+              <el-tag>{{ formatType(scope.row.type) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="task.title" label="所属任务" />
           <el-table-column prop="user.username" label="作者" />
           <el-table-column prop="createdAt" label="上传时间" width="160">
             <template #default="scope">
@@ -354,6 +437,39 @@
       </template>
     </el-dialog>
 
+    <!-- Task Assign Dialog -->
+    <el-dialog v-model="assignDialogVisible" title="指派任务" width="480px">
+      <div v-if="currentTaskForAssign">
+        <p style="margin-bottom: 12px;">
+          当前任务：<strong>{{ currentTaskForAssign.title }}</strong>
+        </p>
+        <el-form label-width="80px">
+          <el-form-item label="指派给">
+            <el-select
+              v-model="selectedAssignees"
+              multiple
+              filterable
+              placeholder="请选择要指派的社员"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="u in users"
+                :key="u._id"
+                :label="`${u.username}（${formatRole(u.role)}）`"
+                :value="u._id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="assignDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitAssign">保存</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
     <!-- Featured Video Edit Dialog -->
     <el-dialog v-model="videoDialogVisible" :title="videoDialogTitle">
       <el-form :model="currentVideo" label-width="80px">
@@ -396,6 +512,14 @@
       <el-form :model="newTask" label-width="80px">
         <el-form-item label="任务标题">
           <el-input v-model="newTask.title" placeholder="请输入任务标题" />
+        </el-form-item>
+        <el-form-item label="任务类型">
+          <el-select v-model="newTask.type" placeholder="请选择任务类型">
+            <el-option label="摄影作品" value="photo" />
+            <el-option label="视频创作" value="video" />
+            <el-option label="后期修图" value="post_prod" />
+            <el-option label="通用任务" value="general" />
+          </el-select>
         </el-form-item>
         <el-form-item label="任务描述">
           <el-input v-model="newTask.description" type="textarea" rows="4" placeholder="请输入详细的任务描述" />
@@ -723,6 +847,14 @@ const confirmVideoEdit = () => {
 const portfolios = ref<any[]>([]);
 const loadingPortfolios = ref(false);
 
+const pendingNormalPortfolios = computed(() =>
+  portfolios.value.filter((p: any) => p.status !== 'approved' && !p.task)
+);
+
+const pendingTaskPortfolios = computed(() =>
+  portfolios.value.filter((p: any) => p.status !== 'approved' && p.task)
+);
+
 const fetchPortfolios = async () => {
   loadingPortfolios.value = true;
   try {
@@ -786,8 +918,50 @@ const creatingTask = ref(false);
 const newTask = reactive({
   title: '',
   description: '',
-  deadline: ''
+  deadline: '',
+  type: 'general'
 });
+
+const assignDialogVisible = ref(false);
+const currentTaskForAssign = ref<any | null>(null);
+const selectedAssignees = ref<string[]>([]);
+
+const openAssignDialog = (task: any) => {
+  currentTaskForAssign.value = task;
+  selectedAssignees.value = Array.isArray(task.assignees)
+    ? task.assignees.map((a: any) => (a.user?._id || a.user))
+    : [];
+  assignDialogVisible.value = true;
+};
+
+const submitAssign = async () => {
+  if (!currentTaskForAssign.value) return;
+  try {
+    await request.put(`/tasks/${currentTaskForAssign.value._id}/assignees`, {
+      assigneeIds: selectedAssignees.value
+    });
+    ElMessage.success('指派成功');
+    assignDialogVisible.value = false;
+    fetchTasks();
+  } catch (error) {
+    ElMessage.error('指派失败');
+  }
+};
+
+const findUsername = (userId: string) => {
+  const user = users.value.find((u: any) => u._id === userId);
+  return user ? user.username : '未知成员';
+};
+
+const formatTaskType = (type: string) => {
+  const map: Record<string, string> = {
+    photo: '摄影作品',
+    video: '视频创作',
+    post_prod: '后期修图',
+    general: '通用任务'
+  };
+  return map[type] || '通用任务';
+};
 
 const fetchTasks = async () => {
   loadingTasks.value = true;
@@ -806,6 +980,7 @@ const openTaskDialog = () => {
   newTask.title = '';
   newTask.description = '';
   newTask.deadline = '';
+  newTask.type = 'general';
   taskDialogVisible.value = true;
 };
 

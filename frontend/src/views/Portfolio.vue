@@ -5,6 +5,39 @@
       <p class="page-subtitle">探索社团成员的精彩创作</p>
     </div>
 
+    <div v-if="taskCollections.length" class="collections-section animate__animated animate__fadeInUp">
+      <h2 class="collections-title">任务合集</h2>
+      <p class="collections-subtitle">按任务整理的作品合集，方便游客浏览专题创作</p>
+      <div class="collections-grid">
+        <el-card
+          v-for="collection in taskCollections"
+          :key="collection.taskId"
+          class="collection-card"
+        >
+          <h3 class="collection-title">
+            {{ collection.title }}
+            <el-tag size="small" style="margin-left: 8px;">
+              {{ collection.typeLabel }}
+            </el-tag>
+          </h3>
+          <div class="collection-thumbnails">
+            <div
+              v-for="item in collection.portfolios"
+              :key="item._id"
+              class="collection-thumb"
+              @click="handleCardClick(item)"
+            >
+              <img
+                :src="resolveImageUrl(item.thumbnailUrl || item.url)"
+                class="collection-image"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </el-card>
+      </div>
+    </div>
+
     <el-tabs v-model="activeTab" class="portfolio-tabs animate__animated animate__fadeInUp">
       <el-tab-pane v-for="type in types" :key="type.value" :label="type.label" :name="type.value">
         <div class="masonry" v-if="filteredPortfolios.length > 0">
@@ -88,7 +121,34 @@ const fetchPortfolios = async () => {
 };
 
 const filteredPortfolios = computed(() => {
-  return portfolios.value.filter(p => p.type === activeTab.value);
+  return portfolios.value.filter((p) => p.type === activeTab.value);
+});
+
+const taskCollections = computed(() => {
+  const map = new Map<string, { taskId: string; title: string; typeLabel: string; portfolios: any[] }>();
+  const typeMap: Record<string, string> = {
+    photo: '摄影作品',
+    video: '视频创作',
+    post_prod: '后期修图',
+    general: '通用任务'
+  };
+
+  for (const p of portfolios.value) {
+    const task = p.task;
+    if (!task || !task._id) continue;
+    const key = task._id as string;
+    if (!map.has(key)) {
+      map.set(key, {
+        taskId: key,
+        title: task.title || '任务合集',
+        typeLabel: typeMap[task.type] || '任务',
+        portfolios: []
+      });
+    }
+    map.get(key)!.portfolios.push(p);
+  }
+
+  return Array.from(map.values());
 });
 
 const handleCardClick = (item: any) => {
@@ -135,6 +195,53 @@ onMounted(() => {
 .page-subtitle {
   font-size: 1.2rem;
   color: #666;
+}
+
+.collections-section {
+  margin-bottom: 30px;
+}
+
+.collections-title {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.collections-subtitle {
+  font-size: 0.95rem;
+  color: #777;
+  margin-bottom: 16px;
+}
+
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.collection-card {
+  border-radius: 10px;
+}
+
+.collection-title {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.collection-thumbnails {
+  display: flex;
+  gap: 8px;
+}
+
+.collection-thumb {
+  flex: 1;
+  cursor: pointer;
+}
+
+.collection-image {
+  width: 100%;
+  height: 80px;
+  border-radius: 6px;
+  object-fit: cover;
 }
 
 .masonry {
