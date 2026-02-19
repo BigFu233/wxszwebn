@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3000/api/settings';
+import request from '../utils/request';
 
 export interface CarouselItem {
   image: string;
@@ -36,14 +34,14 @@ export const useSiteSettingsStore = defineStore('siteSettings', {
     async fetchSettings() {
       this.loading = true;
       try {
-        const response = await axios.get(API_URL);
-        if (response.data) {
-          this.carouselItems = response.data.carouselItems || [];
-          this.featuredVideos = response.data.featuredVideos || [];
-          this.featuredMembers = response.data.featuredMembers || [];
-          this.contactEmail = response.data.contactEmail || '';
-          this.contactAddress = response.data.contactAddress || '';
-          this.aboutContent = response.data.aboutContent || '';
+        const data = await request.get('/settings');
+        if (data) {
+          this.carouselItems = data.carouselItems || [];
+          this.featuredVideos = data.featuredVideos || [];
+          this.featuredMembers = data.featuredMembers || [];
+          this.contactEmail = data.contactEmail || '';
+          this.contactAddress = data.contactAddress || '';
+          this.aboutContent = data.aboutContent || '';
         }
       } catch (err: any) {
         this.error = err.message || 'Failed to fetch settings';
@@ -56,17 +54,14 @@ export const useSiteSettingsStore = defineStore('siteSettings', {
     async updateSettings(data: any) {
       this.loading = true;
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.put(API_URL, data, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.data) {
-          this.carouselItems = response.data.carouselItems || [];
-          this.featuredVideos = response.data.featuredVideos || [];
-          this.featuredMembers = response.data.featuredMembers || [];
-          this.contactEmail = response.data.contactEmail || '';
-          this.contactAddress = response.data.contactAddress || '';
-          this.aboutContent = response.data.aboutContent || '';
+        const updated = await request.put('/settings', data);
+        if (updated) {
+          this.carouselItems = updated.carouselItems || [];
+          this.featuredVideos = updated.featuredVideos || [];
+          this.featuredMembers = updated.featuredMembers || [];
+          this.contactEmail = updated.contactEmail || '';
+          this.contactAddress = updated.contactAddress || '';
+          this.aboutContent = updated.aboutContent || '';
         }
       } catch (err: any) {
         this.error = err.message || 'Failed to update settings';
@@ -82,16 +77,14 @@ export const useSiteSettingsStore = defineStore('siteSettings', {
 
     async uploadImage(file: File) {
       try {
-        const token = localStorage.getItem('token');
         const formData = new FormData();
         formData.append('image', file);
-        const response = await axios.post(`${API_URL}/upload`, formData, {
+        const response = await request.post('/settings/upload', formData, {
           headers: { 
-            Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           }
         });
-        return response.data.imageUrl;
+        return response.imageUrl;
       } catch (err: any) {
         throw new Error(err.message || 'Failed to upload image');
       }
