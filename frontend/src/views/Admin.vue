@@ -44,7 +44,7 @@
         <div class="table-actions">
            <el-button type="primary" size="small" @click="fetchPortfolios">刷新列表</el-button>
         </div>
-        <el-table :data="portfolios" style="width: 100%" stripe v-loading="loadingPortfolios">
+        <el-table :data="portfolios.filter(p => p.status === 'approved')" style="width: 100%" stripe v-loading="loadingPortfolios">
           <el-table-column prop="thumbnailUrl" label="封面" width="120">
             <template #default="scope">
               <img
@@ -839,7 +839,7 @@ const handleDeleteTask = (id: string) => {
 };
 
 const handleTabChange = (tab: string) => {
-  if (tab === 'portfolios') {
+  if (tab === 'portfolios' || tab === 'audit') {
     fetchPortfolios();
   } else if (tab === 'tasks') {
     fetchTasks();
