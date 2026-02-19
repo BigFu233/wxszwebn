@@ -1,4 +1,4 @@
-const BACKEND_BASE = "http://112.124.10.28";
+const BACKEND_BASE = "http://112.124.10.28/api";
 
 exports.handler = async (event) => {
   const basePath = "/.netlify/functions/proxy";
