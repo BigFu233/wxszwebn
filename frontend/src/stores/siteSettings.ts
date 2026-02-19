@@ -34,7 +34,7 @@ export const useSiteSettingsStore = defineStore('siteSettings', {
     async fetchSettings() {
       this.loading = true;
       try {
-        const data = await request.get('/settings');
+        const data: any = await request.get('/settings');
         if (data) {
           this.carouselItems = data.carouselItems || [];
           this.featuredVideos = data.featuredVideos || [];
@@ -54,7 +54,7 @@ export const useSiteSettingsStore = defineStore('siteSettings', {
     async updateSettings(data: any) {
       this.loading = true;
       try {
-        const updated = await request.put('/settings', data);
+        const updated: any = await request.put('/settings', data);
         if (updated) {
           this.carouselItems = updated.carouselItems || [];
           this.featuredVideos = updated.featuredVideos || [];
@@ -79,7 +79,7 @@ export const useSiteSettingsStore = defineStore('siteSettings', {
       try {
         const formData = new FormData();
         formData.append('image', file);
-        const response = await request.post('/settings/upload', formData, {
+        const response: any = await request.post('/settings/upload', formData, {
           headers: { 
             'Content-Type': 'multipart/form-data'
           }
