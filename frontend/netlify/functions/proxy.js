@@ -33,15 +33,32 @@ exports.handler = async (event) => {
     headers,
     body,
   });
+  
+  const contentType = response.headers.get("content-type") || "";
+  const isBinary =
+    contentType.startsWith("image/") ||
+    contentType.startsWith("video/") ||
+    contentType === "application/octet-stream";
 
-  const text = await response.text();
-
-  return {
-    statusCode: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("content-type") || "application/json",
-    },
-    body: text,
-  };
+  if (isBinary) {
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    return {
+      statusCode: response.status,
+      headers: {
+        "Content-Type": contentType,
+      },
+      body: buffer.toString("base64"),
+      isBase64Encoded: true,
+    };
+  } else {
+    const text = await response.text();
+    return {
+      statusCode: response.status,
+      headers: {
+        "Content-Type": contentType || "application/json",
+      },
+      body: text,
+    };
+  }
 };
