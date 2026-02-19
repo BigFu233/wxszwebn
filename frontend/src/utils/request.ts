@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const service = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/.netlify/functions/proxy',
-  timeout: 5000
+  timeout: 20000
 });
 
 service.interceptors.request.use(
