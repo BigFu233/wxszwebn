@@ -13,6 +13,18 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getPublicMembers = async (req: AuthRequest, res: Response) => {
+  try {
+    const users = await User.find({ role: { $in: ['member', 'admin'] } })
+      .select('username email role avatarUrl createdAt phone')
+      .sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: '服务器内部错误' });
+  }
+};
+
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user || !req.user._id) {

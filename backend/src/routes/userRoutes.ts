@@ -8,7 +8,8 @@ import {
   getCurrentUser,
   updateCurrentUser,
   createUserByAdmin,
-  updateUserRole
+  updateUserRole,
+  getPublicMembers
 } from '../controllers/userController';
 import { authenticate, authorize } from '../middleware/authMiddleware';
 
@@ -26,6 +27,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+router.get('/public', getPublicMembers);
 router.get('/', authenticate, authorize(['admin']), getUsers);
 router.get('/me', authenticate, getCurrentUser);
 router.put('/me', authenticate, updateCurrentUser);

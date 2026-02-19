@@ -70,8 +70,14 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="200">
+          <el-table-column label="操作" width="260">
             <template #default="scope">
+              <el-button
+                size="small"
+                @click="$router.push(`/portfolio/${scope.row._id}`)"
+              >
+                查看
+              </el-button>
               <el-button
                 v-if="scope.row.status !== 'approved'"
                 size="small"
@@ -110,9 +116,66 @@
       </el-tab-pane>
 
       <el-tab-pane label="内容审核" name="audit">
-        <div class="empty-state">
-          <el-empty description="暂无待审核内容" />
+        <div class="table-actions">
+          <el-button type="primary" size="small" @click="fetchPortfolios">刷新列表</el-button>
         </div>
+        <el-table
+          :data="portfolios.filter(p => p.status !== 'approved')"
+          style="width: 100%"
+          stripe
+          v-loading="loadingPortfolios"
+        >
+          <el-table-column prop="thumbnailUrl" label="封面" width="120">
+            <template #default="scope">
+              <img
+                v-if="scope.row.thumbnailUrl"
+                :src="scope.row.thumbnailUrl"
+                style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px"
+              />
+              <span v-else>无封面</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="标题" />
+          <el-table-column prop="type" label="类型" width="120">
+            <template #default="scope">
+              <el-tag>{{ formatType(scope.row.type) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="user.username" label="作者" />
+          <el-table-column prop="createdAt" label="上传时间" width="160">
+            <template #default="scope">
+              {{ formatDate(scope.row.createdAt) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="220">
+            <template #default="scope">
+              <el-button
+                size="small"
+                type="primary"
+                plain
+                @click="$router.push(`/portfolio/${scope.row._id}`)"
+              >
+                查看详情
+              </el-button>
+              <el-button
+                size="small"
+                type="success"
+                plain
+                @click="handleApprovePortfolio(scope.row._id)"
+              >
+                通过
+              </el-button>
+              <el-button
+                size="small"
+                type="danger"
+                plain
+                @click="handleDeletePortfolio(scope.row._id)"
+              >
+                删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
       </el-tab-pane>
       <el-tab-pane label="数据统计" name="stats">
         <div class="stats-grid">

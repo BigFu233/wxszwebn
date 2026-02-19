@@ -158,4 +158,27 @@ const onSubmit = async () => {
   font-weight: 600;
   margin-left: 5px;
 }
+
+@media (max-width: 768px) {
+  .login-container {
+    padding: 20px;
+    height: auto;
+    align-items: flex-start;
+  }
+
+  .login-wrapper {
+    flex-direction: column;
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+  }
+
+  .login-left {
+    height: 180px;
+  }
+
+  .login-right {
+    padding: 30px 20px 40px;
+  }
+}
 </style>

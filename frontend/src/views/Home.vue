@@ -260,10 +260,9 @@ const handleCarouselClick = (item: CarouselItem) => {
 // Fetch Data
 const fetchData = async () => {
   try {
-    // Fetch Members
-    const usersRes: any = await request.get('/users');
+    const usersRes: any = await request.get('/users/public');
     if (Array.isArray(usersRes)) {
-       members.value = usersRes;
+      members.value = usersRes;
     }
   } catch (error) {
     console.error('Failed to fetch home data', error);
