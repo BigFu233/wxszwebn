@@ -12,7 +12,7 @@
         <el-card
           v-for="collection in taskCollections"
           :key="collection.taskId"
-          class="collection-card"
+          :class="['collection-card', { 'collection-card--active': focusedTaskId === collection.taskId }]"
         >
           <h3 class="collection-title">
             {{ collection.title }}
@@ -97,11 +97,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { ZoomIn, VideoPlay } from '@element-plus/icons-vue';
 import request from '../utils/request';
 
 const router = useRouter();
+const route = useRoute();
 const activeTab = ref('photo');
 const portfolios = ref<any[]>([]);
 
@@ -123,6 +124,8 @@ const fetchPortfolios = async () => {
 const filteredPortfolios = computed(() => {
   return portfolios.value.filter((p) => p.type === activeTab.value);
 });
+
+const focusedTaskId = computed(() => (route.query.taskId as string) || '');
 
 const taskCollections = computed(() => {
   const map = new Map<string, { taskId: string; title: string; typeLabel: string; portfolios: any[] }>();
@@ -220,6 +223,10 @@ onMounted(() => {
 
 .collection-card {
   border-radius: 10px;
+}
+
+.collection-card--active {
+  border: 2px solid var(--el-color-primary);
 }
 
 .collection-title {

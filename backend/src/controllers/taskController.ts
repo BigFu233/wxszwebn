@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { Task } from '../models/User';
+import { Task, Portfolio } from '../models/User';
 import { AuthRequest } from '../types';
 
 export const createTask = async (req: AuthRequest, res: Response) => {
@@ -99,6 +99,30 @@ export const getMyTasks = async (req: AuthRequest, res: Response) => {
     const tasks = await Task.find({ 'assignees.user': userId })
       .populate('createdBy', 'username email')
       .sort({ createdAt: -1 });
+
+    const taskIds = tasks.map((t) => t._id);
+    const counts = await Portfolio.aggregate([
+      {
+        $match: {
+          user: userId,
+          task: { $in: taskIds as any }
+        }
+      },
+      {
+        $group: {
+          _id: '$task',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const countMap = new Map<string, number>();
+    counts.forEach((c: any) => {
+      if (c._id) {
+        countMap.set(c._id.toString(), c.count);
+      }
+    });
+
     res.json(
       tasks.map((task) => {
         const assignment = task.assignees.find(
@@ -111,7 +135,8 @@ export const getMyTasks = async (req: AuthRequest, res: Response) => {
           deadline: task.deadline,
           type: task.type,
           createdBy: task.createdBy,
-          assignmentStatus: assignment ? assignment.status : 'pending'
+          assignmentStatus: assignment ? assignment.status : 'pending',
+          submissionCount: countMap.get(task._id.toString()) || 0
         };
       })
     );

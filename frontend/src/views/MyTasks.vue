@@ -13,6 +13,11 @@
             <el-tag>{{ formatType(scope.row.type) }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="submissionCount" label="已提交作品" width="120">
+          <template #default="scope">
+            {{ scope.row.submissionCount || 0 }}
+          </template>
+        </el-table-column>
         <el-table-column prop="deadline" label="截止日期" width="160">
           <template #default="scope">
             {{ formatDate(scope.row.deadline) }}

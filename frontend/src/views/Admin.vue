@@ -133,8 +133,14 @@
               <span v-else>未指定</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="180">
+          <el-table-column label="操作" width="260">
             <template #default="scope">
+              <el-button
+                size="small"
+                @click="$router.push({ path: '/portfolio', query: { taskId: scope.row._id } })"
+              >
+                查看作品合集
+              </el-button>
               <el-button size="small" @click="openAssignDialog(scope.row)">指派</el-button>
               <el-button size="small" type="danger" plain @click="handleDeleteTask(scope.row._id)">删除</el-button>
             </template>

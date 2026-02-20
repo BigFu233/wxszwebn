@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Portfolio, Favorite } from '../models/User';
+import { Portfolio, Favorite, Task } from '../models/User';
 import { AuthRequest } from '../types';
 
 export const createPortfolio = async (req: AuthRequest, res: Response) => {
@@ -39,6 +39,23 @@ export const createPortfolio = async (req: AuthRequest, res: Response) => {
       status,
       task: taskId || null
     });
+
+    if (taskId && userId) {
+      try {
+        const task = await Task.findById(taskId);
+        if (task) {
+          const assignment: any = task.assignees.find(
+            (a: any) => a.user.toString() === userId.toString()
+          );
+          if (assignment && assignment.status === 'pending') {
+            assignment.status = 'submitted';
+            await task.save();
+          }
+        }
+      } catch (err) {
+        console.error('更新任务提交状态失败', err);
+      }
+    }
 
     res.status(201).json(portfolio);
   } catch (error) {
@@ -118,10 +135,30 @@ export const approvePortfolio = async (req: AuthRequest, res: Response) => {
       id,
       { status: 'approved' },
       { new: true }
-    ).populate('user', 'username email avatarUrl');
+    )
+      .populate('user', 'username email avatarUrl')
+      .populate('task', 'title type');
     if (!portfolio) {
       res.status(404).json({ message: '作品不存在' });
       return;
+    }
+
+    if (portfolio.task && portfolio.user && (portfolio.user as any)._id) {
+      try {
+        const task = await Task.findById((portfolio.task as any)._id || portfolio.task);
+        if (task) {
+          const userId = (portfolio.user as any)._id;
+          const assignment: any = task.assignees.find(
+            (a: any) => a.user.toString() === userId.toString()
+          );
+          if (assignment) {
+            assignment.status = 'approved';
+            await task.save();
+          }
+        }
+      } catch (err) {
+        console.error('更新任务通过状态失败', err);
+      }
     }
     res.json(portfolio);
   } catch (error) {
