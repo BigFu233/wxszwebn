@@ -418,7 +418,11 @@
             :on-success="handleImageSuccess"
             :before-upload="beforeImageUpload"
           >
-            <img v-if="currentCarousel.image" :src="currentCarousel.image" class="avatar" />
+            <img
+              v-if="currentCarousel.image"
+              :src="resolveImageUrl(currentCarousel.image)"
+              class="avatar"
+            />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
           <div style="margin-top: 10px; width: 100%">
@@ -491,7 +495,11 @@
             :on-success="handleVideoThumbSuccess"
             :before-upload="beforeImageUpload"
           >
-            <img v-if="currentVideo.thumbnail" :src="currentVideo.thumbnail" class="avatar" />
+            <img
+              v-if="currentVideo.thumbnail"
+              :src="resolveImageUrl(currentVideo.thumbnail)"
+              class="avatar"
+            />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
           <div style="margin-top: 10px; width: 100%">
@@ -808,8 +816,17 @@ const currentVideo = ref<FeaturedVideo>({
   description: ''
 });
 
+const extractImageUrl = (response: any) => {
+  if (!response) return '';
+  if (typeof response === 'string') return response;
+  return response.imageUrl || response.url || '';
+};
+
 const handleVideoThumbSuccess: UploadProps['onSuccess'] = (response) => {
-  currentVideo.value.thumbnail = response.imageUrl;
+  const url = extractImageUrl(response);
+  if (url) {
+    currentVideo.value.thumbnail = url;
+  }
 };
 
 const customVideoThumbUploadRequest = async (options: any) => {
@@ -1047,7 +1064,10 @@ const currentCarousel = ref<CarouselItem>({
 });
 
 const handleImageSuccess: UploadProps['onSuccess'] = (response) => {
-  currentCarousel.value.image = response.imageUrl;
+  const url = extractImageUrl(response);
+  if (url) {
+    currentCarousel.value.image = url;
+  }
 };
 
 const beforeImageUpload: UploadProps['beforeUpload'] = (rawFile) => {
