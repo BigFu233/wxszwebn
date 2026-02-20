@@ -318,9 +318,12 @@
           <el-button type="primary" size="small" @click="addFeaturedVideo" style="margin-bottom: 15px">添加精选视频</el-button>
           
           <el-table :data="featuredVideos" style="width: 100%" border>
-             <el-table-column label="封面预览" width="180">
+            <el-table-column label="封面预览" width="180">
               <template #default="scope">
-                <img :src="scope.row.thumbnail" style="width: 150px; height: 85px; object-fit: cover; border-radius: 4px" />
+                <img
+                  :src="resolveImageUrl(scope.row.thumbnail)"
+                  style="width: 150px; height: 85px; object-fit: cover; border-radius: 4px"
+                />
               </template>
             </el-table-column>
             <el-table-column prop="title" label="标题" />

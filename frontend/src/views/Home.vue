@@ -2,16 +2,19 @@
   <div class="home">
     <!-- Hero Carousel Section -->
     <div class="hero-carousel-wrapper">
-      <el-carousel 
-        trigger="click" 
-        height="100vh" 
-        :interval="6000" 
-        arrow="always" 
+      <el-carousel
+        trigger="click"
+        height="100vh"
+        :interval="6000"
+        arrow="always"
         pause-on-hover="false"
         @change="handleCarouselChange"
       >
         <el-carousel-item v-for="(item, index) in carouselItems" :key="index">
-          <div class="carousel-bg" :style="{ backgroundImage: `url(${item.image})` }"></div>
+          <div
+            class="carousel-bg"
+            :style="{ backgroundImage: `url(${resolveImageUrl(item.image)})` }"
+          ></div>
           <div class="carousel-overlay"></div>
           <div class="hero-content">
             <h1 
@@ -105,7 +108,10 @@
             <el-carousel-item v-for="video in featuredVideos" :key="video._id">
               <div class="video-card" @click="handleVideoClick(video)">
                 <div class="video-thumbnail">
-                  <img :src="video.thumbnail || 'https://via.placeholder.com/800x450?text=Video'" alt="Video Thumbnail" />
+                  <img
+                    :src="resolveImageUrl(video.thumbnail) || 'https://via.placeholder.com/800x450?text=Video'"
+                    alt="Video Thumbnail"
+                  />
                   <div class="play-icon">
                     <el-icon><VideoPlay /></el-icon>
                   </div>
