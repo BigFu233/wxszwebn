@@ -80,9 +80,10 @@ export const useSiteSettingsStore = defineStore('siteSettings', {
         const formData = new FormData();
         formData.append('image', file);
         const response: any = await request.post('/settings/upload', formData, {
-          headers: { 
+          headers: {
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          timeout: 60000
         });
         return response.imageUrl;
       } catch (err: any) {
